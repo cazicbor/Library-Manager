@@ -1,0 +1,140 @@
+@startuml
+hide circle
+
+  abstract class Ressource {
+    code : integer {key}
+    titre : string
+    langue : string
+    date_apparition : integer
+    editeur : string
+    genre : string
+    code_classification : integer
+  }
+  note "L'attribut langue de Ressoure est NULL par défaut" as N1
+
+  class Film {
+    longueur : integer
+    synopsis : string
+  }
+
+  class Livre {
+    ISBN : integer
+    resume : string
+  }
+
+  class Oeuvre_Musicale {
+    longueur : integer
+  }
+
+  enum Etats {
+    neuf
+    bon
+    abime
+    perdu
+  }
+
+  class Exemplaire {
+    code : integer {key}
+    etat : Etats
+  }
+  note top of Exemplaire : Un exemplaire ne peux être emprunté que s'il est\n disponible et qu'il est en bon état ou neuf
+
+  abstract class Contributeur {
+    nom_artiste : string
+    nom : string
+    prenom : string
+    date_naissance : date
+    nationalite : string
+  }
+  
+  together {
+    class Realisateur
+    class Acteur
+  }
+
+  together {
+    class Interprete
+    class Compositeur
+  }
+
+  abstract class Utilisateur {
+    adresse_mail : string {key}
+    nom : string
+    prenom : string
+    date_naissance : date
+    adresse : string
+  }
+
+  class Adherent {
+    blackliste : bool
+  }
+  note top of Adherent :  blackliste est par défaut\n mis à FALSE
+  note top of Adherent : nombre_emprunts simultanés limité
+
+  class Membre
+
+  class Compte_Utilisateur {
+    login : string {key}
+    mdp : string
+  }
+
+
+  class Pret {
+    date_pret : date
+    date_fin : date
+    date duree()
+  }
+
+  abstract class Sanction
+
+  class Retard {
+    nb_jours : integer
+  }
+  note top of Retard : Un adhérent ne peux effectuer\n d'emprunts durant la durée\n correspondant au nombre\n de jours de retards
+
+  class Degradation {
+    remboursement : bool
+  }
+  note left of Degradation : Un adhérent ne peux plus emprunter\n tant qu'il n'a pas remboursé la sanction
+
+  Ressource <|--- Livre
+  Ressource <|-- Oeuvre_Musicale
+  Ressource <|- Film
+
+  Utilisateur <|-- Membre
+  Adherent --|> Utilisateur
+
+  Retard -|> Sanction
+  Degradation --|> Sanction
+
+  Contributeur "1..*" - "*" Oeuvre_Musicale
+  (Contributeur, Oeuvre_Musicale) .. Interprete
+
+   Contributeur "1..*" - "*" Oeuvre_Musicale
+  (Contributeur, Oeuvre_Musicale) .. Compositeur
+
+  Contributeur "1..*" - "*" Film 
+  (Contributeur, Film) .. Acteur    
+
+  Contributeur "1..*" - "*" Film 
+  (Contributeur, Film) .. Realisateur
+
+  Contributeur "1..*" - "*" Livre
+  (Contributeur, Livre) .. Auteur
+
+  class Realisateur
+
+  class Interprete
+
+  class Compositeur
+
+  class Auteur
+
+  class Acteur
+
+  Utilisateur "1" *--right "1" Compte_Utilisateur
+  Ressource "1" -left "0..*" Exemplaire : Existe en >
+  Pret "0..*" - "1" Exemplaire : Concerne >
+  Pret "0..*" --left "1" Adherent : Effectue <
+  Sanction "0..*" -- "1" Pret : Aboutit a <
+@enduml

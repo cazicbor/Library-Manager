@@ -1,0 +1,51 @@
+Classes pour gérer les utilisateurs:
+    Utilisateur( #adresse_mail : string,  nom : string, prenom : string, date_naissance : date, adresse : string) with nom, prenom,date_naissance UNIQUE NOT NULL
+    Membre( #adresse_mail => Utilisateur) with nombre_emprunts < MAX 
+    Adherent( #adresse_mail => Utilisateur, nombre_emprunts : integer, blackliste : bool) with nombre_emprunts < MAX 
+    Compte_Utilisateur( #login, mdp : string, #adresse_mail => Utilisateur) with mdp NOT NULL
+
+Classes pour gérer les sanctions:
+    Retard(#id_pret=>Pret, nb_jours : integer) with nb_jours NOT NULL
+    Sanction(#id_pret=>Pret) 
+    Degradation(#id_pret=>Pret, remboursement : bool) with remboursement NOT NULL
+    Pret(#id_pret : int, date_pret : date, date_fin : date, adresse_mail=>Adherent) with date_pret, date_fin, adresse_mail NOT NULL
+    Exemplaire(#code : int, id_pret=>Pret, disponible : bool, etat : {neuf | bon | abimé | perdu}, ressource=>Ressource) with etat, disponible NOT NULL
+Contraintes:
+    Association 1..N entre Exemplaire et Pret : Projection(Exemplaire, id_pret) ⊆ Projection(Pret, id_pret)
+    Association 1..N entre Pret et Sanction : Projection(Sanction, id_pret) ⊆ Projection(Pret, id_pret)
+    Héritage Sanction : Projection(Degradation, id_pret) ⊆ Projection(Pret, id_pret)
+    Héritage Sanction : Projection(Retard, id_pret) ⊆ Projection(Pret, id_pret)
+
+Classes pour gérer les contributeurs:
+    Contributeur(#id_contributeur : integer, nom : string, prenom : string, nom_artiste : string, date_naissance : date, nationalite : string, ressource=>Ressource) with nom_artiste, date_naissance NOT NULL and nom, prenom, date_naissance UNIQUE NOT NULL
+    Realisateur(#contributeur=>Contributeur, #ressource=>Ressource)
+    Acteur(#contributeur=>Contributeur, #ressource=>Ressource)
+    Compositeur(#contributeur=>Contributeur, #ressource=>Ressource)
+    Interprete(#contributeur=>Contributeur, #ressource=>Ressource)
+    Auteur(#contributeur=>Contributeur, #ressource=>Ressource)
+
+Contraintes:
+Classe d'association Compositeur entre Oeuvre_musicale et Contributeur : Projection(Contributeur, id_contributeur) = Projection (Compositeur, contributeur) AND Projection(Ressource, code) = Projection (Compositeur, ressource) 
+Classe d'association Acteur entre Film et Contributeur : Projection(Contributeur, id_contributeur) = Projection (Acteur, contributeur) AND Projection(Ressource, code) = Projection (Acteur, ressource)
+Classe d'association Auteur entre Livre et Contributeur : Projection(Contributeur, id_contributeur) = Projection (Auteur, contributeur) AND Projection(Ressource, code) = Projection (Auteur, ressource)
+Classe d'association Interprete entre Film et Contributeur : Projection(Contributeur, id_contributeur) = Projection (Interprete, contributeur) AND Projection(Ressource, code) = Projection (Interprete, ressource)
+Classe d'association Realisateur entre Film et Contributeur : Projection(Contributeur, id_contributeur) = Projection (Realisateur, contributeur) AND Projection(Ressource, code) = Projection (Realisateur, ressource)
+
+Classes pour gérer les ressources:
+    Ressource (#code : integer, titre : string, langue : string, date_apparition : integer, editeur : string, genre : string, code_classification : integer) with titre, code_classification NOT NULL
+    Oeuvre_musicale(#code=>Ressource, longueur : integer) with longueur NOT NULL
+    Livre(#ressource=>Ressource, isbn : integer, resume : string)
+    Film(#ressource=>Ressource, longueur : integer, synopsis : string, acteur=>Acteur)
+Contraintes:
+    Héritage Ressource : Projection(Ressource, code) = projection(Film, code) UNION projection(Livre, code) UNION projection(Oeuvre_musicale, code) 
+    Classe d’association Realisation : Projection(Realisateur, realisateur) = Projection(Realisation, realisateur) AND Projection(Film, ressource) = Projection(Realisation, ressource)
+    Association 1..N entre Acteur et Film : Projection(Acteur, contributeur) = Projection (Film, ressource)
+    Classe d’association Ecrit : Projection(Livre, ressource) = Projection(Ecrit, ressource) AND Projection(Auteur, contributeur) = Projection(Ecrit, contributeur)
+    Association 1..N entre Exemplaire et Ressource : Projection(Exemplaire, id_pret) = Projection (Ressource,code)
+
+
+Informations supplémentaires:
+    - Adherent.blackliste est initialisé à False
+    - Exemplaire.disponible est initialisé à True
+
+

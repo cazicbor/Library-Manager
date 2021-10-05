@@ -1,0 +1,117 @@
+NF18 - Gestion d’une bibliothèque
+Note de clarification
+
+Contexte : 
+Une bibliothèque municipale nous demande de concevoir un système de gestion de données car elle souhaite informatiser ses activités : catalogage, consultations, gestion des utilisateurs, prêts, emprunts, retours…
+
+
+Données d’entrée :
+Les données d’entrée fournies par le client et la maîtrise d’ouvrage se résument à l’énoncé Sujet 2 fourni sur le site de NF18. 
+
+
+Livrables attendus : 
+Les livrables attendus par le client durant le projet sont les suivants : 
+    Une note de clarification
+    Une Modélisation Conceptuelle de Données (MCD)
+    Un implémentation de la base de données en SQL avec création de tables et insertion de données de test
+    MLD du projet 
+    Application Python 
+
+
+Objectifs visés : 
+L’application informatique qui va être remise à la bibliothèque municipale à l’issue du projet satisfera les objectifs suivants :
+
+1- Mise à jour des données et gestion
+    Ressources documentaires 
+        Ajout de documents
+        Modification de leurs descriptions
+        Ajout/Suppression d’un exemplaire
+    Faciliter au personnel la gestion 
+        Prêts
+        Retards
+        Réservations 
+    Faciliter aux adhérents la recherche de documents et la gestion de leurs emprunts
+    Faciliter la gestion des utilisateurs et de leurs données
+
+2- Établir des statistiques sur les données stockées :
+    Documents empruntés par les adhérents 
+    Liste des documents par popularité 
+    Étude des profils des adhérents
+    Suggestions adaptées/personnalisées
+
+
+Acteurs du projet :
+Les acteurs de ce projet sont:
+    Le client : la bibliothèque municipale
+    Le maître d’ouvrage: Alessandro Victorino 
+    La maîtrise d'œuvre est réalisée par Boris Cazic, Eugénie Debette, Jonathan Legrand et Aline Zhang.
+
+
+Système à étudier : 
+Lors de l’étude du sujet, nous avons résumé les points importants à prendre en compte afin d’élaborer un modèle de base de données pertinent pour répondre aux besoins de la bibliothèque. 
+
+Voici les classes que nous avons choisi d’implémenter:
+
+Ressource, définie par : un code (clé), un titre, une date d’apparition, un éditeur, un genre, un code de classification et une langue (nous avons pris la décision de mettre langue dans Ressource et d’attribuer la valeur NULL à cet attribut si jamais une œuvre ne possède pas de langue - par exemple une musique). C’est une classe abstraite car il n’existe pas d’autres types de Ressource que Livre, Film et Oeuvre_Musicale. Cette classe est reliée à Exemplaire avec une relation Existe_en de cardinalité 0..* - 1 : une ressource peut exister en 0 à n exemplaires.
+Livre, qui hérite de Ressource, défini par : un ISBN et un résumé. Livre hérite de la clé étrangère de Ressource.
+Film, qui hérite de Ressource, défini par : une longueur et un synopsis.
+Oeuvre_Musicale, qui hérite de Ressource, définie par : une longueur.
+
+Ici, on a envisagé un héritage par référence pour Ressource, Oeuvre_Musicale, Film et Livre ; en effet, un héritage par la classe mère est à exclure puisque celui-ci n’est ni complet, ni quasi-complet et un héritage par les classes filles est aussi à écarter car Ressource est dans d’autres relations avec Contributeur et Exemplaire.
+
+Contributeur, défini par : un identifiant (clé), un nom, un prénom, un nom d'artiste, une date de naissance et une nationalité. Cette classe est reliée à Ressource avec une relation Contribue de cardinalité 1..* - 1..* : un Contributeur peut être dans plusieurs ressources différentes, et une Ressource peut contenir plusieurs contributeurs. C'est une classe abstraite, puisqu'on suppose qu'il n'existe pas de contributeurs autres que ceux enumérés dans l'énoncé.
+Réalisateur, Compositeur, Interprète, Acteur, Auteur qui héritent de Contributeur. 
+Nous avons choisi un héritage ici car cela pourra nous permettre à l’avenir d’avoir accès à des listes de ces différentes classes et ainsi de faciliter l’accès et la récupération des données. Ces classes ont des relations de cardinalité 1..* - 1..* avec Livre, Film ou Oeuvre_Musicale: par exemple, un auteur peut écrire plusieurs livres différents, et un livre peut également contenir plusieurs auteurs. L’exception est pour la relation Joue_dans définie entre Acteur et Film: un film peut contenir 0 acteur.
+L’héritage ici est un héritage par référence pour les mêmes raisons que pour Ressource.
+Nous avons choisi d'ajouter un atribut pour définir un nom d'artiste pour les artistes comme JUL, ou Daft Punk où nous ne pouvons pas définir le nom et le prénom de l'artiste.
+
+Utilisateur, défini par une adresse mail (clé), un nom, un prénom, une date de naissance et une adresse. Cette classe est reliée à Compte_Utilisateur avec une composition : les deux classes ont le même cycle de vie. Utilisateur est une classe abstraite: en effet, il ne peut être que Membre ou Adhérent.
+Compte_Utilisateur possède l'attribut login (clé), ainsi que mdp (mot de passe).
+Adhérent, défini par un nombre d’emprunts, ainsi que par l'attribut booléen blacklisté. Cette classe est reliée à Prêt avec une relation 1 - 0..* : un Adhérent peut effectuer 0 à plusieurs emprunts, et un prêt est associé à un unique Adhérent.
+Membre;
+
+Ici, on envisage un héritage par référence car Utilisateur est une classe abstraite et qu’elle est dans une relation avec Compte_Utilisateur. De plus, Adhérent est dans une relation avec Prêt, lui-même dans d’autres relations. 
+On exclut un héritage par la classe mère car celui-ci n’est pas complet (ou presque complet). 
+
+Prêt, défini par deux dates, date_pret et date_fin de location. Cette classe est reliée à Exemplaire avec l’association 0..* - 1..*: un Prêt peut contenir 1 à n exemplaires (avec n limité), et un Exemplaire peut être emprunté 0 à n fois. Elle comporte également une méthode duree(), qui calcule la durée de du prêt à partie des deux attributs de la classe.
+Exemplaire, défini par : un code (clé), une disponibilité et un état, de type neuf, bon, abîmé ou perdu.
+Sanction :
+    Retard défini par : un nombre de jours.
+    Dégradation : un remboursement de type booléen.
+
+Nous avons choisi une association d’héritage entre Sanction, et Retard et Dégradation. Cette association se justifie par le fait qu’une sanction est soit liée à un retard, soit liée à une dégradation. Ici, on choisit l’héritage par les classes filles car c’est un héritage exclusif ; Retard et Dégradation n’ont aucun objet en commun. De plus, la classe mère possède une association sortante (c'est elle qui référence, mais elle n'est jamais référencée) donc l’association par les classes filles fonctionne toujours très bien. 
+Concernant les relations, Sanction est dans une relation 0..* à 1 avec Prêt car celui-ci aboutit à une ou plusieurs sanctions (retard et dégradation sont cumulables et un prêt peut concerner plusieurs items) tandis qu’une sanction est spécifique à un Prêt. 
+
+L’application devra gérer les contraintes suivantes:
+
+    Chaque adhérent a un nombre d’emprunts simultanés limité, et chacun sur une durée limitée : la cardinalité de l’association Adhérent vers Prêt est 0..*, et on ajoute une contrainte via une note sur le nombre maximal d’emprunts simultanés.
+    Un exemplaire ne peut être emprunté que s’il est disponible et en bon état : nous n’avons pas réussi à implémenter cette contrainte dans l’UML, elle est donc présentée sous la forme d’une note.
+    La bibliothèque peut choisir de blacklister un adhérent en cas de sanctions répétées : on ajoute donc un attribut blacklisté de type booléen à la classe Adhérent, qui est initialisé à Faux et prend la valeur Vrai lorsque l’utilisateur est blacklisté par la bibliothèque. Pour qu’un adhérent puisse réaliser un prêt, on ajoute comme contrainte en note que adhérent.blacklisté doit valoir Faux.
+    Un adhérent qui rend un ouvrage en retard ou qui a dégradé son état sera sanctionné. En cas de retard, l’adhérent ne pourra pas pas emprunter de ressources pendant le nombre de jours de retard. En cas de perte ou de détérioration, l’adhérent ne pourra pas emprunter de ressources jusqu’à qu’il rembourse le document. Ces contraintes sont modélisées par la classe Sanction et ses classes filles. On considère qu'à un prêt on peut associer 0 ou plusieurs sanctions, et qu’une sanction ne peut être associée qu’à un retard ou une dégradation. On spécifie en note que tant que la sanction s’applique, l’adhérent ne peut pas réaliser de prêt.
+    Les membres et les adhérents n’auront pas les mêmes droits: seuls les membres auront accès aux classes Sanction, Retard et Dégradation.
+
+
+Vues : 
+Nous aurons besoin de plusieurs vues pour notre projet:
+    - vAdherent : liste des adhérents de la bibliothèques
+    - vMembre : liste des membres de la bibliothèques
+    - vSanction_Membre : liste des sanctions donné à un adhérent
+    - vExemplaire_Bon : liste des exemplaires neuf ou en bon état d’une ressource
+    - vContributeur_Role : liste des contributeurs et leur rôle (Acteur, Réalisateur, Compositeur, Interprete) d’une ressource
+    - vRessource_Contributeur : liste des ressources dans lesquels on retrouve un contributeur
+    - vPret : liste des exemplaires compris dans un prêt 
+
+
+Contraintes : 
+Contraintes Méthodologiques : La solution informatique que nous proposerons doit s’exécuter correctement. La base de données devra être instanciée par des valeurs choisies de manière pertinente, afin de montrer à l’utilisateur les possibilités qu’offre la solution technique que nous allons développer.
+
+Contraintes Organisationnelles : Le projet s’effectue dans le contexte de la pandémie liée à la COVID-19, aussi, nous avons dû nous organiser pour travailler en groupe à distance : nous travaillons donc principalement sur des documents partagés (type Google Drive ou via Gitlab). Nous organisons la répartition des tâches lors de réunions hebdomadaires sur Zoom. 
+
+Contraintes Temporelles : 
+    Rendu UML et MLD : 15/04/2021
+    Rendu SQL :  29/04/2021
+    Rendu Applicatif : 06/05/2021
+    Rendu Corrigé : 12/05/2021
+
+
+ 

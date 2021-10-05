@@ -1,0 +1,103 @@
+Exemplaire 
+
+Exemplaire(#code : int, id_pret=>Pret, disponible : bool, etat : {neuf | bon | abimé | perdu}, ressource=>Ressource) with etat, disponible NOT NULL
+
+F+ = {code -> id_pret, 
+code -> disponible, 
+code -> etat, 
+code -> ressource, 
+(etat, id_pret) -> disponible
+}
+
+1NF : La table possède une clé (code) mais il y a une énumération: donc il faut créer un type ‘etats’ sur lequel va pointer l’attribut ‘etat’ dans Exemplaire.
+Exemplaire(#code : int, id_pret=>Pret, disponible : bool, etat : etats, ressource=>Ressource) with etat, disponible NOT NULL
+Etats(neuf, bon, abime, perdu) 
+
+2NF: La table possède un seul attribut clé (code) donc la relation est 2NF
+
+3NF: (etat, id_pret) n’est pas une clé, mais elle détermine ‘disponible’. Il faut donc décomposer la table.
+Exemplaire(#code : int, disponible=>Disponible, ressource=>Ressource) with disponible NOT NULL
+Etats(neuf, bon, abime, perdu) 
+Disponible(#disponible: bool, id_pret=>Pret, etat : Etats) with etat NOT NULL
+
+Au final, la table ‘Disponible’ ne nous semblait pas cohérente. Nous avons décidé d’en faire une vue, et d’enlever l’attribut ‘disponible’ de la table. Ainsi, nous avons une forme normalisée 3NF.
+Exemplaire(#code: int, ressource=>Ressource, etat=>Etats)
+Etats(neuf, bon, abime, perdu) 
+
+
+Ressource 
+
+Ressource (#code : integer, titre : string, langue : string, date_apparition : integer, editeur : string, genre : string, code_classification : integer) with titre, code_classification NOT NULL
+
+F+ = {code -> titre, 
+code -> langue, 
+code -> date_apparition, 
+code -> editeur, 
+code -> genre, 
+code -> code_classification, 
+titre, date_apparition, editeur -> langue, 
+titre, date_apparition, editeur -> genre, 
+titre, date_apparition, editeur -> code_classification,
+titre, date_apparition, editeur -> code }
+
+Clés candidates : 
+{code}
+{titre, date_apparition, editeur}
+
+1NF : La relation possède au moins une clé, et tous les attributs sont atomiques.
+
+2NF : La clé {code} est atomique, et n’admet aucune sous-partie autre que elle-même. On ne peut pas déterminer la langue, le genre, le code_classification ni le code à partir uniquement d’une partie de la clé candidate {titre, date_apparition, editeur}. Ainsi, la relation est en 2NF. 
+
+3NF : Aucun attribut non-clé ne détermine d’attribut, la relation est donc en 3NF. 
+
+
+Contributeur
+
+Contributeur(#id_contributeur : integer, nom : string, prenom : string, nom_artiste : string, date_naissance : date, nationalite : string, ressource=>Ressource) with nom_artiste, date_naissance NOT NULL and nom, prenom, date_naissance UNIQUE NOT NULL
+
+F+ =  { nom, prenom, date_naissance -> nom_artiste,
+nom, prenom, date_naissance -> nationalité
+nom, prenon, date_naissance -> id_contributeur,
+id_contributeur -> nom, 
+id_contributeur -> prenom
+id_contributeur -> date_naissance, 
+id_contributeur -> nationalité,
+id_contributeur ->  nom_artiste
+}
+
+Clés candidates :
+{id_contributeur}
+{nom, prenom, date_naissance}
+
+1NF : Tous les attributs sont atomiques et la relation possède deux clés candidates.
+
+2NF : On ne peut pas déterminer la nationalité ou le nom d'artiste à partir seulement du nom, de la date de naissance, du prénom ou d’une combinaison de deux de ces attributs. D’autre part {id_contributeur} est atomique et n’admet pas de sous partie autre qu'elle-même. La relation est par conséquent en 2NF.
+
+3NF : Le nom d’artiste ne détermine pas la nationalité et inversement. Ces attributs ne dépendent que des clés candidates.
+
+
+Utilisateur 
+
+Utilisateur( #adresse_mail : string,  nom : string, prenom : string, date_naissance : date, adresse : string) with nom, prenom, date_naissance UNIQUE NOT NULL
+
+Ici, de façon sémantique, on part du principe que l’on peut retrouver l’adresse de quelqu’un via son nom, son prénom et sa date de naissance (dans les pages jaunes par exemple). 
+De plus, comme adresse_mail est la clé de notre relation, on sait qu’elle va pouvoir déterminer la totalité des attributs de la table. 
+
+F+ = {nom, prénom, date_naissance -> adresse
+adresse_mail -> nom, 
+adresse_mail -> prenom,
+adresse_mail -> date_naissance,
+adresse_mail -> adresse
+}
+Clés candidates : 
+{adresse_mail}, 
+{nom, prenom, date_naissance}
+
+1NF : Elle possède au moins une clé et tous les attributs sont atomiques
+
+2NF : Elle est 2NF car tout attribut n’appartenant à aucune clé candidate ne dépend pas d’une partie seulement d’une clé candidate. 
+En effet, on ne peut pas déterminer adresse ou adresse_mail grâce à une partie de la clé candidate composée de {nom, prenom, date_naissance}.
+
+3NF : De plus, il est 3NF car, en plus d’être 2NF, un attribut non clé ne peut pas déterminer un autre attribut, c’est-à-dire, adresse ne peut déterminer nom, prenom ou date_naissance. 
+
+
